@@ -5,20 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Entity
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class Note {
+public class TokenModel {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    @Lob
-    private String content;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-
+    private String token;
+    private boolean isEnabled;
+    @ManyToMany(mappedBy = "tokens")
+    private Set<User> users;
 }

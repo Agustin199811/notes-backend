@@ -1,15 +1,20 @@
 package com.uce.notes.Jwt;
 
+import com.uce.notes.Model.TokenModel;
+import com.uce.notes.Repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 @Component
@@ -20,6 +25,12 @@ public class JwtUtils {
 
     @Value("${jwt.time.expiration}")
     private String timeExpiration;
+
+    @Autowired
+    private  RevokedToken revokedToken;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
 
     public String generateAccessToken(String email) {
@@ -34,6 +45,10 @@ public class JwtUtils {
 
     public boolean isTokenValid(String token) {
         try {
+            TokenModel tokenEntity = tokenRepository.findByToken(token);
+            if (tokenEntity == null || !tokenEntity.isEnabled()) {
+                return false;
+            }
             Jwts.parser()
                     .verifyWith((SecretKey) getSignatureKey())
                     .build()
@@ -43,6 +58,7 @@ public class JwtUtils {
             return false;
         }
     }
+
 
     public String getUsernameFromToken(String token) {
         return getClain(token, Claims::getSubject);

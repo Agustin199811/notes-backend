@@ -23,8 +23,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private UserDetailServiceImp userDetailServiceImp;
 
     @Override
-    protected void doFilterInternal(@NotNull
-                                    HttpServletRequest request,
+    protected void doFilterInternal(@NotNull HttpServletRequest request,
                                     @NotNull HttpServletResponse response,
                                     @NotNull FilterChain filterChain) throws ServletException, IOException {
         String tokenHeader = request.getHeader("Authorization");
@@ -34,15 +33,17 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 String email = jwtUtils.getUsernameFromToken(token);
                 UserDetails userDetails = userDetailServiceImp.loadUserByUsername(email);
 
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken
-                        (email, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        email, null, userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } else {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token has been revoked or is invalid");
+                return;
             }
-
         }
 
         filterChain.doFilter(request, response);
-
     }
 }

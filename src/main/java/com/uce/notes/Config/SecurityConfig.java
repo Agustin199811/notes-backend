@@ -1,4 +1,8 @@
 package com.uce.notes.Config;
+
+import com.uce.notes.Repository.TokenRepository;
+import com.uce.notes.Repository.UserRepository;
+import com.uce.notes.Services.ServicesImp.CustomLogoutSuccessHandler;
 import com.uce.notes.Config.Filters.JwtAuthenticationFilter;
 import com.uce.notes.Config.Filters.JwtAuthorizationFilter;
 import com.uce.notes.Services.ServicesImp.UserDetailServiceImp;
@@ -32,12 +36,20 @@ public class SecurityConfig {
     JwtUtils jwtUtils;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
     JwtAuthorizationFilter jwtAuthorizationFilter;
 
+    @Autowired
+    CustomLogoutSuccessHandler customLogoutSuccessHandler;
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtils);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtils, userRepository, tokenRepository);
         jwtAuthenticationFilter.setAuthenticationManager(authenticationManager);
         jwtAuthenticationFilter.setFilterProcessesUrl("/login");
         http.authorizeHttpRequests((requests) -> requests
@@ -45,7 +57,7 @@ public class SecurityConfig {
                 .requestMatchers("/roles").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-                .requestMatchers( "/notes/**").hasRole("USER")
+                .requestMatchers("/notes/**").hasRole("USER")
                 .anyRequest().denyAll());
         http.sessionManagement(session
                 -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -54,6 +66,14 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable);
         http.addFilter(jwtAuthenticationFilter);
         http.addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.logout(logout -> logout
+                        .logoutUrl("/logout") // Set the URL for logout
+                        .logoutSuccessHandler(customLogoutSuccessHandler) // Set the custom logout success handler
+                        .invalidateHttpSession(true) // Invalidate the session
+                //.deleteCookies("JSESSIONID") // Optionally delete cookies
+        );
+
         return http.build();
     }
 
