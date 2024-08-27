@@ -7,8 +7,8 @@ import java.util.List;
 
 public interface NoteService {
     Note createNoteForUser(Note note, String email);
-    Note updateNoteForUser(Long noteId, Note note, String username);
-    void deleteNoteForUser(Long id, String username);
-    List<Note> getNotesForUser(String username);
+    Note updateNoteForUser(Long noteId, Note note, String email);
+    void deleteNoteForUser(Long id, String email);
+    List<Note> getNotesForUser(String email);
 
 }

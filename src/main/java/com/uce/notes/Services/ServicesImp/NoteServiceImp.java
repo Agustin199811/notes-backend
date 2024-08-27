@@ -17,7 +17,7 @@ public class NoteServiceImp implements NoteService {
     private NoteRepository noteRepository;
 
     @Autowired
-    private UserRepository userRepository; // Add the User repository
+    private UserRepository userRepository;
 
     @Override
     public Note createNoteForUser(Note noteDto, String email) {
@@ -25,14 +25,15 @@ public class NoteServiceImp implements NoteService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Note note = new Note();
+        note.setTitle(noteDto.getTitle());
         note.setContent(noteDto.getContent());
         note.setUser(user);
 
         return noteRepository.save(note);
     }
 
-    public Note updateNoteForUser(Long noteId, Note note, String username) {
-        User user = userRepository.findUserByEmail(username)
+    public Note updateNoteForUser(Long noteId, Note note, String email) {
+        User user = userRepository.findUserByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Note existingNote = noteRepository.findById(noteId)
                 .orElseThrow(() -> new EntityNotFoundException("Note not found"));
@@ -42,8 +43,8 @@ public class NoteServiceImp implements NoteService {
     }
 
     @Override
-    public void deleteNoteForUser(Long id, String username) {
-        User user = userRepository.findUserByEmail(username) // Adjust according to how you identify the user
+    public void deleteNoteForUser(Long id, String email) {
+        User user = userRepository.findUserByEmail(email) // Adjust according to how you identify the user
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Note note = noteRepository.findById(id)
