@@ -1,6 +1,6 @@
 package com.uce.notes.Controller;
 
-import com.uce.notes.Model.TokenModel;
+
 import com.uce.notes.Model.User;
 import com.uce.notes.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/users")

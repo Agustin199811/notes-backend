@@ -2,7 +2,6 @@ package com.uce.notes.Services.ServicesImp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uce.notes.Jwt.JwtUtils;
-import com.uce.notes.Jwt.RevokedToken;
 import com.uce.notes.Model.TokenModel;
 import com.uce.notes.Repository.TokenRepository;
 import org.springframework.http.MediaType;
