@@ -8,6 +8,7 @@ import com.uce.notes.Repository.UserRepository;
 import com.uce.notes.Services.MailService;
 import com.uce.notes.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,8 @@ public class UserServiceImp implements UserService {
     private RolRepository rolRepository;
     @Autowired
     private MailService mailService;
+    @Value("${reset.password}")
+    private String resetPassword;
 
     @Override
     public User createUser(User user) {
@@ -61,9 +64,16 @@ public class UserServiceImp implements UserService {
             user.setTokenExpirationTime(LocalDateTime.now().plusHours(1));
             userRepository.save(user);
 
-            String resetUrl = "http://localhost:8080/reset-password?token=" + token;
-            String message = "Click on the following link to reset your password: " + resetUrl;
+            // Create the password reset URL
+            String resetUrl = resetPassword + token;
+
+            // Create an HTML message with the reset link
+            String message = "<p>Click on the following link to reset your password:</p>" +
+                    "<a href=\"" + resetUrl + "\">Reset Password</a>";
+
+            // Create the Mail object with the HTML message
             Mail mail = new Mail(user.getEmail(), "Password Reset Request", message);
+            //mail.setHtml(true); // Indicate that the content is HTML
             mailService.sendEmail(mail);
         }
     }
@@ -83,6 +93,17 @@ public class UserServiceImp implements UserService {
         }
         return false;
     }
+
+    @Override
+    public boolean isResetTokenValid(String token) {
+        Optional<User> userOptional = userRepository.findByResetPasswordToken(token);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return user.getTokenExpirationTime().isAfter(LocalDateTime.now());
+        }
+        return false;
+    }
+
 
     @Override
     public List<User> getAllUser() {

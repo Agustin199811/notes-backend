@@ -46,6 +46,15 @@ public class UserController {
             return ResponseEntity.badRequest().body("Invalid or expired token.");
         }
     }
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<?> validateResetToken(@RequestParam String token) {
+        boolean isValid = userService.isResetTokenValid(token);
+        if (isValid) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 
     @GetMapping
     public ResponseEntity<?> getAllUser() {

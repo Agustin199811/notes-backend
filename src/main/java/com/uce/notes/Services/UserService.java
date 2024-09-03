@@ -8,5 +8,6 @@ public interface UserService {
     User createUser(User user);
     void generatePasswordResetToken(String email);
     boolean resetPassword(String token, String newPassword);
+    boolean isResetTokenValid(String token);
     List<User> getAllUser();
 }
