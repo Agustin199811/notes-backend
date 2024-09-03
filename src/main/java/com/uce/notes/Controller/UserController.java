@@ -30,6 +30,23 @@ public class UserController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
+        userService.generatePasswordResetToken(email);
+        return ResponseEntity.ok("Password reset link has been sent to your email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam("token") String token,
+                                                @RequestParam("newPassword") String newPassword) {
+        boolean result = userService.resetPassword(token, newPassword);
+        if (result) {
+            return ResponseEntity.ok("Password has been successfully reset.");
+        } else {
+            return ResponseEntity.badRequest().body("Invalid or expired token.");
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllUser() {
         return ResponseEntity.ok(userService.getAllUser());

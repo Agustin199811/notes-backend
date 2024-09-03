@@ -6,5 +6,7 @@ import java.util.List;
 
 public interface UserService {
     User createUser(User user);
+    void generatePasswordResetToken(String email);
+    boolean resetPassword(String token, String newPassword);
     List<User> getAllUser();
 }

@@ -1,9 +1,11 @@
 package com.uce.notes.Services.ServicesImp;
 
+import com.uce.notes.Model.Dto.Mail;
 import com.uce.notes.Model.Rol;
 import com.uce.notes.Model.User;
 import com.uce.notes.Repository.RolRepository;
 import com.uce.notes.Repository.UserRepository;
+import com.uce.notes.Services.MailService;
 import com.uce.notes.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,9 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class UserServiceImp implements UserService {
@@ -23,7 +24,8 @@ public class UserServiceImp implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private RolRepository rolRepository;
-
+    @Autowired
+    private MailService mailService;
 
     @Override
     public User createUser(User user) {
@@ -40,7 +42,46 @@ public class UserServiceImp implements UserService {
         Set<Rol> roles = new HashSet<>();
         roles.add(userRole);
         user.setRols(roles);
-        return userRepository.save(user);
+
+        User saveUser = userRepository.save(user);
+        String subject = "User Registration Successful";
+        String text = "Dear " + user.getName() + ",\n\nYour account has been created successfully.";
+        Mail mail = new Mail(user.getEmail(), subject, text);
+        mailService.sendEmail(mail);
+        return saveUser;
+    }
+
+    @Override
+    public void generatePasswordResetToken(String email) {
+        Optional<User> userOptional = userRepository.findUserByEmail(email);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String token = UUID.randomUUID().toString();
+            user.setResetPasswordToken(token);
+            user.setTokenExpirationTime(LocalDateTime.now().plusHours(1));
+            userRepository.save(user);
+
+            String resetUrl = "http://localhost:8080/reset-password?token=" + token;
+            String message = "Click on the following link to reset your password: " + resetUrl;
+            Mail mail = new Mail(user.getEmail(), "Password Reset Request", message);
+            mailService.sendEmail(mail);
+        }
+    }
+
+    @Override
+    public boolean resetPassword(String token, String newPassword) {
+        Optional<User> userOptional = userRepository.findByResetPasswordToken(token);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getTokenExpirationTime().isAfter(LocalDateTime.now())) {
+                user.setPassword(passwordEncoder.encode(newPassword));
+                user.setResetPasswordToken(null);
+                user.setTokenExpirationTime(null);
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

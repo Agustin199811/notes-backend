@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .requestMatchers("/hello", "/hi").hasRole("USER")
                 .requestMatchers("/roles").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/forgot-password").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/reset-password").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
                 .requestMatchers("/notes/**").hasRole("USER")
                 .anyRequest().denyAll());

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,8 @@ public class User {
     private String name;
     @Column(unique = true)
     private String email;
+    private String resetPasswordToken;
+    private LocalDateTime tokenExpirationTime;
     private String password;
     private boolean isEnabled;
     private boolean accountNoExpired;
