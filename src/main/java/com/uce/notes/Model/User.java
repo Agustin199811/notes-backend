@@ -2,10 +2,7 @@ package com.uce.notes.Model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -41,6 +38,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
+    @ToString.Exclude
     private List<Note> noteList;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -49,6 +47,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "token_id")
     )
+    @ToString.Exclude
     private Set<TokenModel> tokens;
 
 }

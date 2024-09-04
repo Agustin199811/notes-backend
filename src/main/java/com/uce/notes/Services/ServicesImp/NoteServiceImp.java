@@ -9,7 +9,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NoteServiceImp implements NoteService {
@@ -27,8 +29,9 @@ public class NoteServiceImp implements NoteService {
         Note note = new Note();
         note.setTitle(noteDto.getTitle());
         note.setContent(noteDto.getContent());
+        note.setTime(LocalDateTime.now());
         note.setUser(user);
-
+        //System.out.println("Creating note: " + note);
         return noteRepository.save(note);
     }
 
@@ -38,7 +41,9 @@ public class NoteServiceImp implements NoteService {
         Note existingNote = noteRepository.findById(noteId)
                 .orElseThrow(() -> new EntityNotFoundException("Note not found"));
         existingNote.setContent(note.getContent());
+        existingNote.setTitle(note.getTitle());
         existingNote.setUser(user);
+        existingNote.setTime(LocalDateTime.now());
         return noteRepository.save(existingNote);
     }
 
@@ -65,7 +70,11 @@ public class NoteServiceImp implements NoteService {
         return noteRepository.findByUser(user); // Find notes by user
     }
 
-
+    @Override
+    public Note findByIdAndUserEmail(Long id, String email) {
+        return noteRepository.findByIdAndUserEmail(id, email)
+                .orElseThrow(() -> new IllegalStateException("Note not found or user not authorized"));
+    }
 
 
 }
