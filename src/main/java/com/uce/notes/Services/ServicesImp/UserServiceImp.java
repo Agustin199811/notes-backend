@@ -30,6 +30,12 @@ public class UserServiceImp implements UserService {
     @Value("${reset.password}")
     private String resetPassword;
 
+
+    @Override
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findUserByEmailAndIsDeletedFalse(email);
+    }
+
     @Override
     public User createUser(User user) {
         if (userRepository.findUserByEmail(user.getEmail()).isPresent()) {
@@ -56,7 +62,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void generatePasswordResetToken(String email) {
-        Optional<User> userOptional = userRepository.findUserByEmail(email);
+        Optional<User> userOptional = userRepository.findUserByEmailAndIsDeletedFalse(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             String token = UUID.randomUUID().toString();
@@ -73,35 +79,70 @@ public class UserServiceImp implements UserService {
 
             // Create the Mail object with the HTML message
             Mail mail = new Mail(user.getEmail(), "Password Reset Request", message);
-            //mail.setHtml(true); // Indicate that the content is HTML
             mailService.sendEmail(mail);
+        } else {
+            // If the user is not found or is deleted, throw an exception
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email not found or account is deleted.");
         }
     }
 
     @Override
     public boolean resetPassword(String token, String newPassword) {
-        Optional<User> userOptional = userRepository.findByResetPasswordToken(token);
+        Optional<User> userOptional = userRepository.findByResetPasswordTokenAndIsDeletedFalse(token);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
+
+            if (user.isDeleted()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This account has been deleted.");
+            }
+
             if (user.getTokenExpirationTime().isAfter(LocalDateTime.now())) {
                 user.setPassword(passwordEncoder.encode(newPassword));
                 user.setResetPasswordToken(null);
                 user.setTokenExpirationTime(null);
                 userRepository.save(user);
                 return true;
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset token has expired.");
             }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token.");
+        }
+    }
+
+
+
+
+    @Override
+    public boolean isResetTokenValid(String token) {
+        Optional<User> userOptional = userRepository.findByResetPasswordTokenAndIsDeletedFalse(token);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            if (user.isDeleted()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This account has been deleted.");
+            }
+
+            return user.getTokenExpirationTime().isAfter(LocalDateTime.now());
         }
         return false;
     }
 
+
     @Override
-    public boolean isResetTokenValid(String token) {
-        Optional<User> userOptional = userRepository.findByResetPasswordToken(token);
+    public void deleteUser(Long userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            return user.getTokenExpirationTime().isAfter(LocalDateTime.now());
+            user.setDeleted(true);
+            userRepository.save(user);
+            String subject = "Account Deletion Confirmation";
+            String text = "Dear " + user.getName() + ",\n\nYour account has been successfully deleted.\n\nBest regards,\nYour Company";
+            Mail mail = new Mail(user.getEmail(), subject, text);
+            mailService.sendEmail(mail);
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.");
         }
-        return false;
     }
 
 

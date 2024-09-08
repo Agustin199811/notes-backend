@@ -26,6 +26,7 @@ public class User {
     private LocalDateTime tokenExpirationTime;
     private String password;
     private boolean isEnabled;
+    private boolean isDeleted = false;
     private boolean accountNoExpired;
     private boolean accountNoLocked;
     private boolean credentialNoExpired;

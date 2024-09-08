@@ -23,7 +23,7 @@ public class NoteServiceImp implements NoteService {
 
     @Override
     public Note createNoteForUser(Note noteDto, String email) {
-        User user = userRepository.findUserByEmail(email)
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Note note = new Note();
@@ -36,7 +36,7 @@ public class NoteServiceImp implements NoteService {
     }
 
     public Note updateNoteForUser(Long noteId, Note note, String email) {
-        User user = userRepository.findUserByEmail(email)
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Note existingNote = noteRepository.findById(noteId)
                 .orElseThrow(() -> new EntityNotFoundException("Note not found"));
@@ -49,7 +49,7 @@ public class NoteServiceImp implements NoteService {
 
     @Override
     public void deleteNoteForUser(Long id, String email) {
-        User user = userRepository.findUserByEmail(email) // Adjust according to how you identify the user
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(email) // Adjust according to how you identify the user
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         Note note = noteRepository.findById(id)
@@ -64,7 +64,7 @@ public class NoteServiceImp implements NoteService {
 
     @Override
     public List<Note> getNotesForUser(String username) {
-        User user = userRepository.findUserByEmail(username) // Adjust according to how you identify the user
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(username) // Adjust according to how you identify the user
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         return noteRepository.findByUser(user); // Find notes by user

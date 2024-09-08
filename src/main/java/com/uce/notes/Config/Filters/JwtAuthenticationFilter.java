@@ -70,9 +70,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
         String token = jwtUtils.generateAccessToken(user.getUsername());
 
-        User dbUser = userRepository.findUserByEmail(user.getUsername())
+        User dbUser = userRepository.findUserByEmailAndIsDeletedFalse(user.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        if(dbUser.isDeleted()){
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("User account has been deleted.");
+            return;
+        }
         // Check if token already exists in the database
         TokenModel existingToken = tokenRepository.findByToken(token);
         if (existingToken == null) {
@@ -121,7 +126,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
-                                              AuthenticationException failed) throws IOException, ServletException {
+                                              AuthenticationException failed) throws IOException {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("message", "Invalid email or password");
 

@@ -20,7 +20,7 @@ public class UserDetailServiceImp implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findUserByEmail(username)
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
 

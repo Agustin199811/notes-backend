@@ -60,6 +60,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users/reset-password").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users/validate-reset-token").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE,"/users/delete").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/users/me").hasRole("USER")
                 .requestMatchers("/notes/**").hasRole("USER")
                 .anyRequest().denyAll());
         http.sessionManagement(session
